@@ -2,3 +2,5 @@ model
 logs
 data
 load_model.py
+test_*
+__pycache__/
