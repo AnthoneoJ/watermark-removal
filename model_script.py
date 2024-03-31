@@ -1,4 +1,4 @@
-VERSION = "0"
+VERSION = "1.0"
 """
 Source: https://github.com/zuruoke/watermark-removal
 https://github.com/AnthoneoJ/watermark-removal
@@ -35,7 +35,7 @@ class ModelHandler:
                 shutil.copy(source_file, destination_file)
             shutil.rmtree(temp_dir)
 
-        self.FLAGS = ng.Config('model_scripts\watermark-removal\inpaint.yml')
+        self.FLAGS = ng.Config('inpaint.yml')
         self.model = InpaintCAModel()
 
     def get_prediction(self, input_data: dict) -> str:
@@ -67,8 +67,7 @@ class ModelHandler:
                 sess.run(assign_ops)
                 print('Model loaded.')
                 result = sess.run(output)
-                output_img_cv = cv2.cvtColor(result[0][:, :, ::-1], cv2.COLOR_BGR2RGB)
-                output_img = Image.fromarray(output_img_cv)
+                output_img = Image.fromarray(result[0][:, :, ::-1])
 
         return output_img
 
@@ -87,8 +86,8 @@ if __name__ == '__main__':
     from IPython.display import display
     import urllib.request
     url = "https://user-images.githubusercontent.com/51057490/140277713-c7d6e2b9-db62-4793-823a-25ed0c4e2771.png"
-    urllib.request.urlretrieve(url,"_temp.jpg")
-    img = Image.open("_temp.jpg")
+    urllib.request.urlretrieve(url,"_temp.png")
+    img = Image.open("_temp.png")
     watermark_type = "istock"
     input_data = {
         "input_image": img,
