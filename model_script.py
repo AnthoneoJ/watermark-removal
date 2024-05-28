@@ -1,4 +1,4 @@
-VERSION = "1.2.1"
+VERSION = "1.2.2"
 """
 - resize image so that aspect ratio match mask
 
@@ -54,13 +54,14 @@ class ModelHandler:
         # Resize the image to match the aspect ratio of the mask image
         if input_aspect_ratio > mask_aspect_ratio:
             # Input image is wider than the mask aspect ratio
-            new_width = int(mask_image_size[0] * input_aspect_ratio)
-            new_height = mask_image_size[0]
+            new_width = input_width
+            new_height = input_width / mask_aspect_ratio
         else:
             # Input image is taller than or matches the mask aspect ratio
-            new_width = mask_image_size[1]
-            new_height = int(mask_image_size[1] / input_aspect_ratio)
+            new_width = input_height * mask_aspect_ratio
+            new_height = input_height
         image = image.resize((new_width, new_height), Image.Resampling.BICUBIC)
+        image.width
             
         input_image = preprocess_image(image, watermark_type)
 
