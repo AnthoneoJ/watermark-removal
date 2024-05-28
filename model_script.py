@@ -1,6 +1,6 @@
-VERSION = "1.1"
+VERSION = "1.2"
 """
-- resize portrait image width to match height (as utils/{}/{}/mask.png is absent for portrait)
+- resize image so that aspect ratio match mask
 
 Source: https://github.com/zuruoke/watermark-removal
 https://github.com/AnthoneoJ/watermark-removal
@@ -45,11 +45,23 @@ class ModelHandler:
         watermark_type: str = input_data["input_text"]
         if watermark_type=="placeholder" or watermark_type=="":
             watermark_type = "istock"
-        ori_width = image.width
-        if image.height > image.width:
-            # Resize if the image is in portrait mode as...
-            # ...mask for portrait is absent
-            image = image.resize((image.height, image.height))
+            
+        mask_image_size = (683, 1024, 3) # based on utils/istock/landscape/mask.png
+        mask_aspect_ratio = mask_image_size[0] / mask_image_size[1]
+        # Get the current size of the input image
+        input_width, input_height = image.size
+        input_aspect_ratio = input_width / input_height
+        # Resize the image to match the aspect ratio of the mask image
+        if input_aspect_ratio > mask_aspect_ratio:
+            # Input image is wider than the mask aspect ratio
+            new_width = int(mask_image_size[1] * input_aspect_ratio)
+            new_height = mask_image_size[1]
+        else:
+            # Input image is taller than or matches the mask aspect ratio
+            new_width = mask_image_size[0]
+            new_height = int(mask_image_size[0] / input_aspect_ratio)
+        image = image.resize((new_width, new_height), Image.Resampling.BICUBIC)
+            
         input_image = preprocess_image(image, watermark_type)
 
         output_img = copy.copy(input_image)
@@ -76,9 +88,7 @@ class ModelHandler:
                 result = sess.run(output)
                 output_img = Image.fromarray(result[0][:, :, ::-1])
                 
-        if image.width != ori_width:
-            # Restore original image dimensions
-            output_img = output_img.resize((image.height, ori_width))
+        output_img = output_img.resize((input_width, input_height), Image.Resampling.BICUBIC)
 
         return output_img
 
