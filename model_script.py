@@ -1,5 +1,7 @@
-VERSION = "1.0"
+VERSION = "1.1"
 """
+- resize portrait image width to match height (as utils/{}/{}/mask.png is absent for portrait)
+
 Source: https://github.com/zuruoke/watermark-removal
 https://github.com/AnthoneoJ/watermark-removal
 """
@@ -43,6 +45,11 @@ class ModelHandler:
         watermark_type: str = input_data["input_text"]
         if watermark_type=="placeholder" or watermark_type=="":
             watermark_type = "istock"
+        ori_width = image.width
+        if image.height > image.width:
+            # Resize if the image is in portrait mode as...
+            # ...mask for portrait is absent
+            image = image.resize((image.height, image.height))
         input_image = preprocess_image(image, watermark_type)
 
         output_img = copy.copy(input_image)
@@ -68,6 +75,10 @@ class ModelHandler:
                 print('Model loaded.')
                 result = sess.run(output)
                 output_img = Image.fromarray(result[0][:, :, ::-1])
+                
+        if image.width != ori_width:
+            # Restore original image dimensions
+            output_img = output_img.resize((image.height, ori_width))
 
         return output_img
 
