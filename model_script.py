@@ -1,9 +1,13 @@
-VERSION = "1.2.3"
+VERSION = "1.2.4"
 """
-- resize image so that aspect ratio match mask
+- Resize image to mask then resize back to original size
 
 Source: https://github.com/zuruoke/watermark-removal
 https://github.com/AnthoneoJ/watermark-removal
+
+NOTE:
+- Inference takes around 13GB of GPU memory even with small image
+- Only landscape mask is provided
 """
 import os, shutil, copy
 from PIL import Image
@@ -46,22 +50,11 @@ class ModelHandler:
         if watermark_type=="placeholder" or watermark_type=="":
             watermark_type = "istock"
             
-        mask_image_size = (683, 1024, 3) # based on utils/istock/landscape/mask.png
-        mask_aspect_ratio = mask_image_size[1] / mask_image_size[0]
-        # Get the current size of the input image
-        input_width, input_height = image.size
-        input_aspect_ratio = input_width / input_height
-        # Resize the image to match the aspect ratio of the mask image
-        if input_aspect_ratio > mask_aspect_ratio:
-            # Input image is wider than the mask aspect ratio
-            new_width = input_width
-            new_height = int(input_width / mask_aspect_ratio)
-        else:
-            # Input image is taller than or matches the mask aspect ratio
-            new_width = int(input_height * mask_aspect_ratio)
-            new_height = input_height
-        image = image.resize((new_width, new_height), Image.Resampling.BICUBIC)
-        image.width
+        # Resize to mask size
+        input_width, input_height = image.size[:2]
+        mask_image = Image.open("utils/istock/landscape/mask.png")
+        mask_width, mask_height = mask_image.size[:2] # (683, 1024, 3)
+        image = image.resize((mask_width, mask_height), Image.Resampling.LANCZOS)
             
         input_image = preprocess_image(image, watermark_type)
 
@@ -89,7 +82,8 @@ class ModelHandler:
                 result = sess.run(output)
                 output_img = Image.fromarray(result[0][:, :, ::-1])
                 
-        output_img = output_img.resize((input_width, input_height), Image.Resampling.BICUBIC)
+        # Restore original size
+        output_img = output_img.resize((input_width, input_height), Image.Resampling.LANCZOS)
 
         return output_img
 
