@@ -1,6 +1,7 @@
-VERSION = "1.2.4"
+VERSION = "1.2.5"
 """
 - Resize image to mask then resize back to original size
+- Add use_batch and batch_size to get_prediction
 
 Source: https://github.com/zuruoke/watermark-removal
 https://github.com/AnthoneoJ/watermark-removal
@@ -44,7 +45,7 @@ class ModelHandler:
         self.FLAGS = ng.Config('inpaint.yml')
         self.model = InpaintCAModel()
 
-    def get_prediction(self, input_data: dict) -> str:
+    def get_prediction(self, input_data: dict, use_batch=False, batch_size=0) -> str:
         image: Image.Image = input_data["input_image"]
         watermark_type: str = input_data["input_text"]
         if watermark_type=="placeholder" or watermark_type=="":
