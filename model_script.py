@@ -1,7 +1,8 @@
-VERSION = "1.2.5"
+VERSION = "1.2.6"
 """
 - Resize image to mask then resize back to original size
 - Add use_batch and batch_size to get_prediction
+- Add num_instances placeholder argument
 
 Source: https://github.com/zuruoke/watermark-removal
 https://github.com/AnthoneoJ/watermark-removal
@@ -22,7 +23,7 @@ from inpaint_model import InpaintCAModel
 from preprocess_image import preprocess_image
 
 class ModelHandler:
-    def __init__(self, use_gpu: bool = True) -> None:
+    def __init__(self, num_instances: int = 1, use_gpu: bool = True) -> None:
         if use_gpu:
             physical_devices = tf.config.list_physical_devices('GPU')
             if physical_devices:
@@ -44,6 +45,9 @@ class ModelHandler:
 
         self.FLAGS = ng.Config('inpaint.yml')
         self.model = InpaintCAModel()
+
+        num_instances = 1 # NOTE: force to 1
+        print(f"Number of instances created model_cmd_0: {num_instances}")
 
     def get_prediction(self, input_data: dict, use_batch=False, batch_size=0) -> str:
         image: Image.Image = input_data["input_image"]
