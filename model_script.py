@@ -1,8 +1,9 @@
-VERSION = "1.2.6"
+VERSION = "1.2.7"
 """
 - Resize image to mask then resize back to original size
 - Add use_batch and batch_size to get_prediction
 - Add num_instances placeholder argument
+- Add self.model_name
 
 Source: https://github.com/zuruoke/watermark-removal
 https://github.com/AnthoneoJ/watermark-removal
@@ -23,7 +24,8 @@ from inpaint_model import InpaintCAModel
 from preprocess_image import preprocess_image
 
 class ModelHandler:
-    def __init__(self, num_instances: int = 1, use_gpu: bool = True) -> None:
+    def __init__(self, num_instances: int = 1, use_gpu: bool = True, 
+                 model_name: str = "https://drive.google.com/drive/folders/1xRV4EdjJuAfsX9pQme6XeoFznKXG0ptJ?usp=sharing") -> None:
         if use_gpu:
             physical_devices = tf.config.list_physical_devices('GPU')
             if physical_devices:
@@ -31,10 +33,12 @@ class ModelHandler:
         else:
             os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # Use CPU only
 
+        self.model_name = model_name
+
         # Download models
         self.model_dir = os.path.abspath('model')
         if not self.is_model_downloaded():
-            url = 'https://drive.google.com/drive/folders/1xRV4EdjJuAfsX9pQme6XeoFznKXG0ptJ?usp=sharing'
+            url = self.model_name
             temp_dir = 'model_temp'
             gdown.download_folder(url, output=temp_dir)
             for filename in os.listdir(temp_dir):
